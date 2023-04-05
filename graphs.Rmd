@@ -1,0 +1,159 @@
+---
+title: "Graphs"
+output: html_notebook
+---
+
+# Setup
+
+Loading required packages and the data, and running analysis script.
+
+```{r, include = FALSE, warning = FALSE}
+source("load_dependencies.R")
+awards <- read.csv(file = "data/awards.csv", encoding="UTF-8")
+scores <- read.csv(file = "data/scores.csv", encoding="UTF-8")
+students <- read.csv(file = "data/students.csv", encoding="UTF-8")
+render("analysis.Rmd")
+```
+
+# Plots
+
+```{r}
+means <- function(df, var, varName) {
+  var <- enquo(var)
+  df %>%
+    group_by(!!var) %>%
+    summarize(mean = mean(score), se = std.error(score)) %>%
+    mutate(ci = se * 1.96) %>%
+    mutate(var = varName) %>%
+    rename("group" = !!var)
+}
+
+school_type_df <- means(finalists, schoolType, "School type") %>%
+  mutate(position = recode(group, "Private" = 1, "Public state" = 2, "Public federal" = 3))
+gender_df <- means(finalists, gender, "Gender") %>%
+  mutate(position = recode(group, "Female" = 1, "Male" = 2))
+race_df <- means(finalists, race, "Race") %>%
+  mutate(position = recode(group, "Black" = 1, "Brown" = 2, "White" = 3))
+english_df <- means(finalists, english, "English level") %>%
+  mutate(position = recode(group, "Basic" = 1, "Intermediate" = 2, "Advanced" = 3))
+
+rbind(school_type_df, english_df, race_df, gender_df) %>%
+  ggplot(aes(fct_reorder(group, -position), mean)) +
+    #geom_col(fill = '#8dd8d3ff') +
+    geom_point() +
+    geom_text(aes(label = round(mean, 2)), nudge_x = .25) +
+    #facet_wrap(.~var,scales="free") +
+    facet_grid(fct_inorder(var) ~ ., scales="free") +
+    #ylim(0,5) +
+    geom_errorbar(aes(ymin = mean - ci,
+                      ymax = mean + ci),
+                  width = .1) +
+    labs(
+      x = "",
+      y = "Mean project score"
+    ) +
+    theme(strip.background = element_rect(fill = '#8dd8d3ff')) +
+    coord_flip()
+```
+
+```{r}
+coefficients <- tidy(modelScore) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(term = stri_replace_all(term, fixed = 'schoolType', 'school_type')) %>%
+  mutate(var = stri_sub(term, 1, regexpr("[A-Z]", term) - 1)) %>%
+  mutate(term = stri_sub(term, regexpr("[A-Z]", term))) %>%
+  select(var, term, estimate, std.error) %>%
+  mutate(var = stri_replace_all(var, fixed = '_', ' ')) %>%
+  mutate(var = str_to_title(var)) 
+
+coefficients$var <- fct_relevel(coefficients$var, "School Type", "English", "Race", "Gender")
+  
+coefficients %>%
+  ggplot( aes(x = fct_reorder(term, -estimate), y = estimate)) +
+    geom_point() +
+    geom_text(aes(label = round(estimate, 2)), nudge_x = 0.25) +
+    geom_errorbar(aes(ymin = estimate - 1.96*std.error, ymax = estimate + 1.96*std.error), width = 0.1) + 
+    geom_hline(yintercept = 0, linetype = "dotted") +
+    labs(
+      x = "",
+      y = "Estimate"
+    ) +
+    
+    coord_flip() +
+    facet_grid(var~.,scales="free_y") +
+    theme(strip.background = element_rect(fill = '#8dd8d3ff'))
+```
+
+```{r}
+counts <- function(df, var, varName) {
+  var <- enquo(var)
+  df %>%
+    group_by(!!var, awarded) %>%
+    summarize(count = n()) %>%
+    mutate(var = varName) %>%
+    rename("group" = !!var) %>%
+    mutate(percentage_awarded = 100 * count / sum(count))
+}
+
+awarded <- filter(finalists, awarded == 1)
+
+school_type_df <- counts(finalists, schoolType, "School type") %>%
+  mutate(position = recode(group, "Private" = 1, "Public state" = 2, "Public federal" = 3))
+gender_df <- counts(finalists, gender, "Gender") %>%
+  mutate(position = recode(group, "Female" = 1, "Male" = 2))
+race_df <- counts(finalists, race, "Race") %>%
+  mutate(position = recode(group, "Black" = 1, "Brown" = 2, "White" = 3))
+english_df <- counts(finalists, english, "English level") %>%
+  mutate(position = recode(group, "Basic" = 1, "Intermediate" = 2, "Advanced" = 3))
+df <- rbind(school_type_df, english_df, race_df, gender_df)
+
+df %>%
+  filter(awarded == 1) %>%
+  ggplot(aes(fct_reorder(group, -position), percentage_awarded)) +
+    geom_col(fill = '#8dd8d3ff') +
+    geom_text(aes(label = paste(format(round(percentage_awarded, 1), nsmall = 1), "%", sep = "")), nudge_y = 2) +
+    facet_grid(fct_inorder(var) ~ .,scales="free") +
+    labs(
+      x = "",
+      y = "% of the group that received an award"
+    ) +
+    theme(strip.background = element_rect(fill = '#8dd8d3ff')) +
+    coord_flip()
+```
+
+```{r}
+
+counts <- function(df, var, varName) {
+  var <- enquo(var)
+  df %>%
+    group_by(!!var) %>%
+    summarize(count = n()) %>%
+    mutate(var = varName) %>%
+    rename("group" = !!var)
+}
+
+awarded <- filter(finalists, awarded == 1)
+
+school_type_df <- counts(finalists, schoolType, "School type") %>%
+  mutate(position = recode(group, "Private" = 1, "Public state" = 2, "Public federal" = 3))
+gender_df <- counts(finalists, gender, "Gender") %>%
+  mutate(position = recode(group, "Female" = 1, "Male" = 2))
+race_df <- counts(finalists, race, "Race") %>%
+  mutate(position = recode(group, "Black" = 1, "Brown" = 2, "White" = 3))
+english_df <- counts(finalists, english, "English level") %>%
+  mutate(position = recode(group, "Basic" = 1, "Intermediate" = 2, "Advanced" = 3))
+df <- rbind(school_type_df, english_df, race_df, gender_df)
+
+df %>%
+  #filter(awarded == 1) %>%
+  ggplot(aes(fct_reorder(group, -position), count)) +
+    geom_col(fill = '#8dd8d3ff') +
+    geom_text(aes(label = count), nudge_y = 7) +
+    facet_grid(fct_inorder(var) ~ .,scales="free") +
+    labs(
+      x = "",
+      y = "Number of students (finalists)"
+    ) +
+    theme(strip.background = element_rect(fill = '#8dd8d3ff')) +
+    coord_flip()
+```

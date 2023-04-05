@@ -1,0 +1,9 @@
+eventYear,status,projectID,participantID,gender,race,english,schoolType,city,state
+2020,Confirmed finalist,1,1,Female,Black,Intermediate,Public federal,São Paulo,São Paulo
+2020,Confirmed finalist,1,2,Male,White,Advanced,Public federal,São Paulo,São Paulo
+2020,Confirmed finalist,2,3,Female,White,Intermediate,Private,Porto Alegre,Rio Grande do Sul
+2020,Confirmed finalist,3,4,Male,White,Basic,Public state,Salvador,Bahia
+2020,Confirmed finalist,4,5,Male,Brown,Basic,Private,Cuiabá,Mato Grosso
+2020,Not selected,5,6,Male,Brown,Basic,Public state,Manaus,Amazonas
+2020,Selected but did not participate,6,7,Female,Black,Intermediate,Private,Rio de Janeiro,Rio de Janeiro
+2020,Selected but did not participate,6,8,Male,Brown,Intermediate,Private,Rio de Janeiro,Rio de Janeiro

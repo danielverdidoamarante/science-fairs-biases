@@ -1,0 +1,294 @@
+---
+title: "Statistical Analyses"
+output: html_notebook
+---
+
+# Setup
+
+Running setup script, which loads required packages and gets the data.
+
+IMPORTANT: please note that for privacy reasons we are not sharing the data used for this project. Instead, the data files here (except ipc and svi, which are from external sources) are fictional to enable the code to run. 
+
+```{r, include = FALSE, warning = FALSE}
+source("load_dependencies.R")
+awards <- read.csv(file = "data/awards.csv", encoding="UTF-8")
+scores <- read.csv(file = "data/scores.csv", encoding="UTF-8")
+students <- read.csv(file = "data/students.csv", encoding="UTF-8")
+ipc <- read.csv(file = "data/external/ipc.csv", encoding="UTF-8")
+svi <- read.csv(file = "data/external/svi.csv", encoding="UTF-8")
+```
+
+Filter only the relevant data from the original SVI data. Only for informational purposes, the file in this repository is already filtered.
+
+```{r}
+# svi <- svi %>%
+#   filter(ano == "2010") %>%
+#   filter(label_cor == "Total Cor", label_sexo == "Total Sexo") %>%
+#   filter(label_sit_dom == "Total Situação de Domicílio")%>%
+#   filter(nome_municipio_uf != "-")%>%
+#   filter(udh == "geral")%>%
+#   mutate(city = stri_sub(nome_municipio_uf, 1, -6))%>%
+#   mutate(svi = ivs, state = nome_uf)%>%
+#   select(state, city,  svi)
+```
+
+Adding new columns to the students dataframe: ipc and svi
+
+```{r}
+students <- students %>%
+  mutate(accepted = if_else(status == 'Not selected', 0, 1)) %>%
+  
+  left_join(awards, by = 'projectID') %>%
+  mutate(awarded = if_else(is.na(awardName), 0, 1)) %>%
+  select(-c(awardName)) %>%
+  
+  left_join(ipc, by = c("state")) %>%
+  
+  left_join(svi, by = c("city", "state"))
+```
+
+Filtering the students dataframe to only include data points of students that belong to groups with more than 25 individuals (changed here to 1 as this repo uses only sample data)
+
+```{r}
+groupsToInclude <- function(var) {
+  var <- enquo(var)
+  students %>%
+    group_by(!!var) %>%
+    summarize(count = n()) %>%
+    filter(count > 1)
+}
+
+students <- students %>%
+  filter(gender %in% groupsToInclude(gender)$gender) %>%
+  filter(race %in% groupsToInclude(race)$race) %>%
+  filter(schoolType %in% groupsToInclude(schoolType)$schoolType)
+```
+
+
+# Descriptive statistics
+
+## Students who submitted a project
+
+Number of Students: group counts of the total number of students who submitted a project to the event
+
+```{r}
+#defining the relevant columns to analyze
+cols <- c("gender", "race", "schoolType", "english")
+
+counts <- function(df, var) {
+  df %>%
+    group_by(!!var) %>%
+    summarize(count = n())
+}
+
+for (c in cols) {
+  print(counts(students, sym(c)))
+}
+```
+
+Acceptance Rate: percentage of students that submitted a project and were accepted to go to the next round of the competition;
+
+```{r}
+acceptanceRate <- function(var) {
+  students %>%
+    group_by(!!var, accepted) %>%
+    summarize(count = n()) %>%
+    mutate(total = sum(count)) %>%
+    filter(accepted == 1) %>%
+    mutate(acceptance_rate = round(count / total * 100, 2)) %>%
+    select(!!var, total, acceptance_rate) %>%
+    arrange(desc(acceptance_rate))
+}
+
+for (c in cols) {
+  print(acceptanceRate(sym(c)))
+}
+```
+
+## Confirmed finalists (were selected and participated as finalists in the event)
+
+Creating a new dataframe only with the finalists
+
+```{r}
+finalists <- students %>%
+  filter(status == 'Confirmed finalist') %>%
+  select(-c(status))
+```
+
+Number of Students: group counts of the total number of confirmed finalists students
+
+```{r}
+for (c in cols) {
+  print(counts(finalists, sym(c)))
+}
+```
+
+Average Score: unweighted mean score of all judging criteria for the student's project
+
+```{r}
+#creating a new dataframe with mean scores for each project
+meanScores <- scores %>%
+  filter(!is.na(score)) %>%
+  group_by(projectID) %>%
+  summarize(score = mean(score))
+
+finalists <- finalists %>%
+  left_join(meanScores, by = 'projectID')
+
+means <- function(var) {
+  finalists %>%
+    group_by(!!var) %>%
+    summarize(mean = mean(score))
+}
+
+for (c in cols) {
+  print(means(sym(c)))
+}
+```
+
+Award %: proportion of participants from within each group that got an award (only considered 1st, 2nd, and 3rd place awards).
+
+```{r}
+award_rate <- function(df, g) {
+  df %>%
+    group_by(!!g, awarded) %>%
+    summarize(count = n()) %>%
+    mutate(total = sum(count)) %>%
+    filter(awarded == 1) %>%
+    mutate(award_rate = round(count / total * 100, 2)) %>%
+    select(!!g, count,  total, award_rate) %>%
+    arrange(desc(award_rate))
+}
+
+for (c in cols) {
+  print(award_rate(finalists, sym(c)))
+}
+```
+
+# Inferential statistics
+
+## Models
+
+to predict students' performance based on the four relevant variables (school type, English level, race, and gender).
+- Model
+- ANOVAs
+- Pair-wise comparisons with Bonferroni correction
+
+Logistic regression with the binary outcome being accepted or not
+
+```{r}
+modelAcceptance <- glm(accepted ~ schoolType + english + race + gender, data = students, family = binomial)
+summary(modelAcceptance)
+anova(modelAcceptance, test="Chisq")
+```
+
+Linear regression model with score as a continuous dependent variable
+
+```{r}
+finalists$gender <- fct_relevel(finalists$gender, "Male")
+finalists$race <- fct_relevel(finalists$race, "White")
+finalists$schoolType <- fct_relevel(finalists$schoolType, "Public federal")
+
+modelScore <- lm(score ~ gender + race + english + schoolType, data = finalists)
+summary(modelScore)
+anova(modelScore)
+```
+
+```{r}
+for (c in cols) {
+  print(c)
+  print(pairwise.t.test(finalists$score, pull(finalists[c]), p.adjust.method = "bonferroni"))
+}
+```
+
+Logistic regression with the binary outcome being awarded or not awarded
+
+```{r}
+modelAward <- glm(awarded ~ gender + race + english + schoolType, data = finalists, family = binomial)
+summary(modelAward)
+anova(modelAward, test="Chisq")
+```
+
+```{r}
+for (c in cols) {
+  print(c)
+  print(pairwise.t.test(finalists$awarded, pull(finalists[c]), p.adjust.method = "bonferroni"))
+}
+```
+
+Predicting scores of each judging criterion to investigate whether the pattern for the overall score would be the same for the individual criteria
+
+```{r}
+subScores <- scores %>%
+  filter(!is.na(score)) %>%
+  group_by(projectID, criterion) %>%
+  summarise(score = mean(score)) %>%
+  pivot_wider(names_from = criterion, values_from = score) %>%
+  rename("RC" = "Results and conclusions") %>%
+  mutate(RCP = if_else(is.na(Product), RC, Product)) %>%
+  mutate(RCP = if_else(is.na(RCP), 0, RCP)) %>%
+  select(projectID, Presentation, Introduction, Methodology, RCP, Writing, 'Project aspects') %>%
+  left_join(finalists, by = "projectID") %>%
+  filter(!is.na(eventYear))
+```
+
+```{r}
+modelCriteria <- lm(Presentation ~ schoolType + gender + race + english, data = subScores)
+summary(modelCriteria)
+anova(modelCriteria)
+```
+
+```{r}
+modelCriteria <- lm(Introduction ~ schoolType + gender + race + english, data = subScores)
+summary(modelCriteria)
+anova(modelCriteria)
+```
+
+```{r}
+modelCriteria <- lm(Writing ~ schoolType + gender + race + english, data = subScores)
+summary(modelCriteria)
+anova(modelCriteria)
+```
+
+```{r}
+modelCriteria <- lm(Methodology ~ schoolType + gender + race + english, data = subScores)
+summary(modelCriteria)
+anova(modelCriteria)
+```
+
+```{r}
+modelCriteria <- lm(RCP ~ schoolType + gender + race + english, data = subScores)
+summary(modelCriteria)
+anova(modelCriteria)
+```
+
+```{r}
+modelCriteria <- lm(`Project aspects` ~ schoolType + gender + race + english, data = subScores)
+summary(modelCriteria)
+anova(modelCriteria)
+```
+
+## Location-based
+
+Using per capita income and SVI datasets to conduct a location-based analysis, examining whether those indicators could be used as predictors of the project scores.
+
+Based on city social vulnerability index
+
+```{r}
+model_svi = lm(score ~ svi, data = finalists)
+summary(model_svi)
+```
+
+```{r}
+cor(finalists$score, finalists$svi, use = "complete.obs")
+```
+Based on state income per capita
+
+```{r}
+model_ipc = lm(score ~ ipc, data = finalists)
+summary(model_ipc)
+```
+
+```{r}
+cor(finalists$score, finalists$ipc, use = "complete.obs")
+```

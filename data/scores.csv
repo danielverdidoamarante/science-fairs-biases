@@ -1,0 +1,73 @@
+scoresheetID,projectID,criterionID,criterion,subcriterionID,subcriterion,score
+1,1,1,Presentation,1,Originality and creativity,4
+1,1,1,Presentation,2,Mastery,5
+1,1,1,Presentation,3,Communication,4
+1,1,1,Presentation,4,Objectivity,4
+1,1,1,Presentation,5,Language,4
+1,1,2,Introduction,6,Scope,5
+1,1,2,Introduction,7,Persuasion,4
+1,1,2,Introduction,8,Evidence,4
+1,1,2,Introduction,9,Goal,5
+1,1,3,Methodology,10,Development,5
+1,1,3,Methodology,11,Methods,5
+1,1,3,Methodology,12,Materials,5
+1,1,4,Results and conclusions,13,Data analysis and interpretation,4
+1,1,4,Results and conclusions,14,Cohesion,4
+1,1,6,Writing,17,Clarity,3
+1,1,6,Writing,18,Scientific language,4
+1,1,7,Project aspects,19,Relevance and impact,5
+1,1,7,Project aspects,20,Creativity and innovation,4
+2,2,1,Presentation,1,Originality and creativity,2.5
+2,2,1,Presentation,2,Mastery,3
+2,2,1,Presentation,3,Communication,4
+2,2,1,Presentation,4,Objectivity,3
+2,2,1,Presentation,5,Language,3
+2,2,2,Introduction,6,Scope,5
+2,2,2,Introduction,7,Persuasion,4
+2,2,2,Introduction,8,Evidence,3
+2,2,2,Introduction,9,Goal,5
+2,2,3,Methodology,10,Development,4
+2,2,3,Methodology,11,Methods,5
+2,2,3,Methodology,12,Materials,5
+2,2,4,Results and conclusions,13,Data analysis and interpretation,3
+2,2,4,Results and conclusions,14,Cohesion,4
+2,2,6,Writing,17,Clarity,3
+2,2,6,Writing,18,Scientific language,3
+2,2,7,Project aspects,19,Relevance and impact,5
+2,2,7,Project aspects,20,Creativity and innovation,4
+3,3,1,Presentation,1,Originality and creativity,3
+3,3,1,Presentation,2,Mastery,2.5
+3,3,1,Presentation,3,Communication,5
+3,3,1,Presentation,4,Objectivity,5
+3,3,1,Presentation,5,Language,5
+3,3,2,Introduction,6,Scope,3
+3,3,2,Introduction,7,Persuasion,2.5
+3,3,2,Introduction,8,Evidence,3
+3,3,2,Introduction,9,Goal,4
+3,3,3,Methodology,10,Development,2.5
+3,3,3,Methodology,11,Methods,3
+3,3,3,Methodology,12,Materials,3
+3,3,5,Product,15,Definition,3
+3,3,5,Product,16,Feasibility,3
+3,3,6,Writing,17,Clarity,3
+3,3,6,Writing,18,Scientific language,3
+3,3,7,Project aspects,19,Relevance and impact,5
+3,3,7,Project aspects,20,Creativity and innovation,4
+4,4,1,Presentation,1,Originality and creativity,3
+4,4,1,Presentation,2,Mastery,2.5
+4,4,1,Presentation,3,Communication,3
+4,4,1,Presentation,4,Objectivity,2
+4,4,1,Presentation,5,Language,3
+4,4,2,Introduction,6,Scope,4
+4,4,2,Introduction,7,Persuasion,2
+4,4,2,Introduction,8,Evidence,3
+4,4,2,Introduction,9,Goal,2.5
+4,4,3,Methodology,10,Development,3
+4,4,3,Methodology,11,Methods,2.5
+4,4,3,Methodology,12,Materials,2
+4,4,4,Results and conclusions,13,Data analysis and interpretation,1
+4,4,4,Results and conclusions,14,Cohesion,2
+4,4,6,Writing,17,Clarity,3
+4,4,6,Writing,18,Scientific language,3
+4,4,7,Project aspects,19,Relevance and impact,4
+4,4,7,Project aspects,20,Creativity and innovation,3
