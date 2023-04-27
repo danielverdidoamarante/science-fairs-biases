@@ -31,7 +31,3 @@ To protect students' privacy and in compliance with the Brazilian General Data P
 -   **`analysis.R`**: performs statistical analyses of the data
 
 -   **`graphs.R`**: generates graphs and visualizations of the results
-
-## **Acknowledgements**
-
-We would like to acknowledge the support and guidance of Dr. Taylor Arnold, Dr. Lilla Orr, and Dr. Matthew Lowder from the University of Richmond in the development of this work.
