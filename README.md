@@ -1,5 +1,7 @@
 # **Do Science Fairs Reinforce Inequality? Statistical Analysis of Socio-Economic Factors' Influence on Scores and Awards**
 
+Authors: Daniel Verdi do Amarante and Kritim Rijal, University of Richmond
+
 ## **Abstract**
 
 Science fairs are events where students showcase research projects they have developed to explore topics outside their normal curriculum and familiarize themselves with the scientific method. These fairs also contribute to honing key skills such as communication, problem-solving, and critical thinking. Maintaining fairness in the competition is crucially important for the event's success, so we investigated possible biases in students' performance at science fairs based on their socio-economic background. We found no significant differences in gender and race as predictors of science fair performance, but our results suggest that participants with particular school types and English levels (speculated to have comparatively more resources) were more likely to perform well in the competition than the others.
